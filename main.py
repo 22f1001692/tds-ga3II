@@ -4,7 +4,6 @@ from pydantic import BaseModel
 from typing import Optional
 import json
 import os
-from openai import OpenAI # Swap this out if you are using a different LLM provider
 import google.generativeai as genai
 import os
 
