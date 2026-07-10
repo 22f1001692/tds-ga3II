@@ -36,7 +36,7 @@ class InvoiceResponse(BaseModel):
 
 # Configure the API key
 genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
-model = genai.GenerativeModel('gemini-omni-flash-preview')
+model = genai.GenerativeModel('gemini-3.5-flash')
 
 # Inside your /extract endpoint:
 
