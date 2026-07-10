@@ -5,6 +5,9 @@ from typing import Optional
 import json
 import os
 from openai import OpenAI # Swap this out if you are using a different LLM provider
+import google.generativeai as genai
+import os
+
 
 app = FastAPI()
 
@@ -31,7 +34,13 @@ class InvoiceResponse(BaseModel):
 
 # Initialize your LLM client 
 # Ensure your API key is set in your terminal: export OPENAI_API_KEY="your-key-here"
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY")) 
+
+# Configure the API key
+genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
+model = genai.GenerativeModel('gemini-1.5-flash')
+
+# Inside your /extract endpoint:
+
 
 # --- 3. The Extraction Endpoint ---
 @app.post("/extract", response_model=InvoiceResponse)
@@ -54,17 +63,11 @@ async def extract_invoice(request: InvoiceRequest):
 
     try:
         # Call the LLM with JSON mode enabled
-        response = client.chat.completions.create(
-            model="gpt-4o-mini", # Fast and cheap model, perfect for this task
-            messages=[
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": f"Raw Invoice Text:\n{request.invoice_text}"}
-            ],
-            response_format={"type": "json_object"} # Forces structured JSON output
+        response = model.generate_content(
+            f"{system_prompt}\n\nRaw Invoice Text:\n{request.invoice_text}",
+            generation_config={"response_mime_type": "application/json"}
         )
-        
-        # Parse the JSON string returned by the LLM into a Python dictionary
-        extracted_data = json.loads(response.choices[0].message.content)
+        extracted_data = json.loads(response.text)
         
         # Pydantic (InvoiceResponse) will automatically validate and format this return
         return extracted_data
